@@ -1,10 +1,10 @@
-pub mod util;
 pub mod board;
+pub mod movegen;
 pub mod types;
-mod movegen;
+pub mod util;
 
-use types::*;
 use movegen::pregen::PseudoAttacks;
+use types::*;
 
 use lazy_static::lazy_static;
 
@@ -32,6 +32,9 @@ mod tests {
     #[test]
     fn pregen() {
         let pregen = movegen::pregen::PseudoAttacks::init();
-        println!("{:?}", pregen.king[Square::B5] | Bitboard::square(Square::B5));
+        println!(
+            "{:?}",
+            pregen.king[Square::B5] | Bitboard::square(Square::B5)
+        );
     }
 }

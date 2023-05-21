@@ -13,7 +13,7 @@ pub mod pregen {
         pub rook: IndexableBitboardList,
         pub queen: IndexableBitboardList,
         pub king: IndexableBitboardList,
-        pub all: IndexableBitboardList
+        pub all: IndexableBitboardList,
     }
 
     impl PseudoAttacks {
@@ -26,7 +26,7 @@ pub mod pregen {
                 rook: [Bitboard(0); 64],
                 queen: [Bitboard(0); 64],
                 king: [Bitboard(0); 64],
-                all: [Bitboard(0); 64]
+                all: [Bitboard(0); 64],
             }
         }
 
@@ -35,13 +35,17 @@ pub mod pregen {
             for sq in Square::all() {
                 // calculate knight attacks
                 for step in [-17, -15, -10, -6, 6, 10, 15, 17] {
-                    if !sq.safe_step(step) {continue};
+                    if !sq.safe_step(step) {
+                        continue;
+                    };
                     let to = (sq as isize + step) as usize;
                     attacks.knight[to] |= Bitboard::square(sq);
                 }
                 // calculate king attacks
                 for step in [-9, -8, -7, -1, 1, 7, 8, 9] {
-                    if !sq.safe_step(step) {continue};
+                    if !sq.safe_step(step) {
+                        continue;
+                    };
                     let to = (sq as isize + step) as usize;
                     attacks.king[to] |= Bitboard::square(sq);
                 }
@@ -76,7 +80,7 @@ pub mod pregen {
                 PieceType::Rook => &self.rook,
                 PieceType::Queen => &self.queen,
                 PieceType::King => &self.king,
-                PieceType::All => &self.all
+                PieceType::All => &self.all,
             }
         }
     }
@@ -99,7 +103,7 @@ pub mod pregen {
                 PieceType::Rook => &mut self.rook,
                 PieceType::Queen => &mut self.queen,
                 PieceType::King => &mut self.king,
-                PieceType::All => &mut self.all
+                PieceType::All => &mut self.all,
             }
         }
     }
@@ -110,5 +114,3 @@ pub mod pregen {
         }
     }
 }
-
-

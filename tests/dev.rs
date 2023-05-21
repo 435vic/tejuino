@@ -1,8 +1,8 @@
 #[cfg(test)]
 mod tests {
-    use tejuino::types::Bitboard;
     use tejuino::board::Board;
-    
+    use tejuino::types::Bitboard;
+
     #[test]
     fn test_print() {
         let my_board = Board::from(tejuino::BOARD_START_FEN);

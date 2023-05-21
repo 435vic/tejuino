@@ -3,7 +3,7 @@ use crate::util;
 #[derive(Debug, Clone, Copy)]
 pub enum Color {
     White,
-    Black
+    Black,
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -82,7 +82,7 @@ pub enum Direction {
     UpRight = 8 + 1,
     UpLeft = 8 - 1,
     DownRight = -8 + 1,
-    DownLeft = -8 - 1
+    DownLeft = -8 - 1,
 }
 
 #[derive(Copy, Clone, PartialEq, Eq)]
@@ -110,7 +110,7 @@ impl File {
             5 => Ok(File::FileF),
             6 => Ok(File::FileG),
             7 => Ok(File::FileH),
-            _ => Err(format!("Invalid file: {}", file))
+            _ => Err(format!("Invalid file: {}", file)),
         }
     }
 }
@@ -126,7 +126,7 @@ impl Rank {
             5 => Ok(Rank::Rank6),
             6 => Ok(Rank::Rank7),
             7 => Ok(Rank::Rank8),
-            _ => Err(format!("Invalid rank: {}", rank))
+            _ => Err(format!("Invalid rank: {}", rank)),
         }
     }
 }
@@ -202,7 +202,11 @@ impl Square {
 
 impl Piece {
     pub fn from(c: char) -> Piece {
-        let color = if c.is_lowercase() { Color::Black } else { Color::White };
+        let color = if c.is_lowercase() {
+            Color::Black
+        } else {
+            Color::White
+        };
         match c.to_lowercase().to_string().as_str() {
             "p" => Piece::Pawn(color),
             "n" => Piece::Knight(color),
