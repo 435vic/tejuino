@@ -55,6 +55,6 @@ impl std::fmt::Debug for Board {
         let chars = self.content.iter().map(|p| p.id()).collect::<Vec<char>>();
         let chars_slice: &[char; 64] = chars.as_slice()
             .try_into().expect("&self.content should be of length 64.");
-        write!(f, "{}", util::render_grid(chars_slice))
+        write!(f, "{}", util::render_grid(chars_slice, true))
     }
 }
