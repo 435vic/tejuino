@@ -2,8 +2,9 @@ pub mod board;
 pub mod movegen;
 pub mod types;
 pub mod util;
+pub mod pregen;
 
-use movegen::pregen::PseudoAttacks;
+use pregen::PseudoAttacks;
 use types::*;
 
 use lazy_static::lazy_static;
@@ -21,20 +22,64 @@ mod tests {
 
     #[test]
     fn test_square() {
-        assert_eq!(Square::E4.file(), File::FileE);
-        assert_eq!(Square::E4.rank(), Rank::Rank4);
+        let all_files = vec![File::FileA, File::FileB, File::FileC, File::FileD, File::FileE, File::FileF, File::FileG, File::FileH];
+        let all_ranks = vec![Rank::Rank1, Rank::Rank2, Rank::Rank3, Rank::Rank4, Rank::Rank5, Rank::Rank6, Rank::Rank7, Rank::Rank8];
+
+        for sq in Square::all() {
+            let n = sq as usize;
+            assert_eq!(Square::from(n), sq);
+            let file_n = n % 8;
+            let rank_n = n / 8;
+            assert_eq!(sq.file(), all_files[file_n]);
+            assert_eq!(sq.rank(), all_ranks[rank_n]);
+        }
 
         // square methods
-        assert_eq!(Square::E4.dist(&Square::E4), 0);
-        assert_eq!(Square::E4.dist(&Square::E5), 1);
+        assert_eq!(Square::E4.dist(Square::E4), 0);
+        assert_eq!(Square::E4.dist(Square::E5), 1);
+
+        struct KnightJump {
+            from: Square,
+            to: Square,
+        }
+
+        impl KnightJump {
+            fn new(from: Square, to: Square) -> KnightJump {
+                KnightJump { from, to }
+            }
+        }
+
+        let knight_jumps = vec![
+            KnightJump::new(Square::E4, Square::C3),
+            KnightJump::new(Square::E4, Square::G3),
+            KnightJump::new(Square::E4, Square::C5),
+            KnightJump::new(Square::E4, Square::G5),
+            KnightJump::new(Square::E4, Square::D2),
+            KnightJump::new(Square::E4, Square::F2),
+            KnightJump::new(Square::E4, Square::D6),
+            KnightJump::new(Square::E4, Square::F6),
+            KnightJump::new(Square::G1, Square::F3),
+            KnightJump::new(Square::H8, Square::F7),
+        ];
+
+        for jmp in knight_jumps {
+            println!("{} -> {}", jmp.from, jmp.to);
+            assert_eq!(jmp.from.dist(jmp.to), 2)
+        }
     }
 
     #[test]
-    fn pregen() {
-        let pregen = movegen::pregen::PseudoAttacks::init();
-        println!(
-            "{:?}",
-            pregen.king[Square::B5] | Bitboard::square(Square::B5)
+    fn test_pregen() {
+        assert_eq!(
+            PSEUDO_ATTACKS.king[Square::E4],
+            Bitboard::squares(&[Square::D3, Square::E3, Square::F3, Square::D4,
+                                Square::F4, Square::D5, Square::E5, Square::F5])
         );
+
+        assert_eq!(
+            PSEUDO_ATTACKS.knight[Square::E4],
+            Bitboard::squares(&[Square::C3, Square::G3, Square::C5, Square::G5,
+                                Square::D2, Square::F2, Square::D6, Square::F6])
+        )
     }
 }
