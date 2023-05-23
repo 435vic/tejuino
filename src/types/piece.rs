@@ -65,6 +65,27 @@ impl Piece {
     }
 }
 
+impl PieceType {
+    pub fn name(&self) -> &str {
+        match self {
+            PieceType::None => "None",
+            PieceType::Pawn => "Pawn",
+            PieceType::Knight => "Knight",
+            PieceType::Bishop => "Bishop",
+            PieceType::Rook => "Rook",
+            PieceType::Queen => "Queen",
+            PieceType::King => "King",
+            PieceType::All => "All",
+        }
+    }
+}
+
+impl std::fmt::Display for PieceType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.name())
+    }
+}
+
 impl std::fmt::Display for Piece {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.id())

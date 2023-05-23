@@ -1,10 +1,10 @@
-pub mod board;
 pub mod movegen;
 pub mod types;
 pub mod util;
 pub mod pregen;
+pub mod magic;
 
-use pregen::PseudoAttacks;
+use pregen::Pregen;
 use types::*;
 
 use lazy_static::lazy_static;
@@ -12,7 +12,7 @@ use lazy_static::lazy_static;
 pub const BOARD_START_FEN: &str = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
 lazy_static! {
-    pub static ref PSEUDO_ATTACKS: PseudoAttacks = PseudoAttacks::init();
+    pub static ref PREGEN: Pregen = Pregen::init();
 }
 
 // Tests
@@ -27,7 +27,7 @@ mod tests {
 
         for sq in Square::all() {
             let n = sq as usize;
-            assert_eq!(Square::from(n), sq);
+            assert_eq!(Square::from(n as isize), sq);
             let file_n = n % 8;
             let rank_n = n / 8;
             assert_eq!(sq.file(), all_files[file_n]);
@@ -71,15 +71,22 @@ mod tests {
     #[test]
     fn test_pregen() {
         assert_eq!(
-            PSEUDO_ATTACKS.king[Square::E4],
+            PREGEN.attacks.king[Square::E4],
             Bitboard::squares(&[Square::D3, Square::E3, Square::F3, Square::D4,
                                 Square::F4, Square::D5, Square::E5, Square::F5])
         );
 
         assert_eq!(
-            PSEUDO_ATTACKS.knight[Square::E4],
+            PREGEN.attacks.knight[Square::E4],
             Bitboard::squares(&[Square::C3, Square::G3, Square::C5, Square::G5,
                                 Square::D2, Square::F2, Square::D6, Square::F6])
         )
+    }
+
+    #[test]
+    fn test_edges() {
+        let s = Square::A1;
+        let b = ((Bitboard::FILE_A | Bitboard::FILE_H) & !Bitboard::file(s)) | ((Bitboard::RANK_1 | Bitboard::RANK_8) & !Bitboard::rank(s));
+        println!("{:?}", b);
     }
 }

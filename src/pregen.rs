@@ -1,35 +1,48 @@
 use std::ops::{Index, IndexMut};
 
 use crate::types::*;
+use crate::magic::*;
 
 type IndexableBitboardList = [Bitboard; 64];
 
+pub struct Pregen {
+    pub attacks: PseudoAttacks,
+    pub bishop_magics: MagicBitboard,
+    pub rook_magics: MagicBitboard,
+}
+
 pub struct PseudoAttacks {
-    pub none: IndexableBitboardList,
-    pub pawn: IndexableBitboardList,
     pub knight: IndexableBitboardList,
     pub bishop: IndexableBitboardList,
     pub rook: IndexableBitboardList,
     pub queen: IndexableBitboardList,
     pub king: IndexableBitboardList,
-    pub all: IndexableBitboardList,
+}
+
+impl Pregen {
+    pub fn init() -> Pregen {
+        let bishop = generate_magics(&MagicPiece::Bishop);
+        let rook = generate_magics(&MagicPiece::Rook);
+        Pregen {
+            attacks: PseudoAttacks::init(&bishop, &rook),
+            bishop_magics: bishop,
+            rook_magics: rook,
+        }
+    }
 }
 
 impl PseudoAttacks {
     const fn new() -> PseudoAttacks {
         PseudoAttacks {
-            none: [Bitboard(0); 64],
-            pawn: [Bitboard(0); 64],
             knight: [Bitboard(0); 64],
             bishop: [Bitboard(0); 64],
             rook: [Bitboard(0); 64],
             queen: [Bitboard(0); 64],
             king: [Bitboard(0); 64],
-            all: [Bitboard(0); 64],
         }
     }
 
-    pub fn init() -> PseudoAttacks {
+    pub fn init(bishop_magics:& MagicBitboard, rook_magics: &MagicBitboard) -> PseudoAttacks {
         let mut attacks = PseudoAttacks::new();
         for sq in Square::all() {
             // calculate knight attacks
@@ -37,17 +50,19 @@ impl PseudoAttacks {
                 if !sq.safe_step(step) {
                     continue;
                 };
-                let to = (sq as isize + step) as usize;
-                attacks.knight[to] |= Bitboard::square(sq);
+                attacks.knight[sq + step] |= Bitboard::square(sq);
             }
             // calculate king attacks
             for step in [-9, -8, -7, -1, 1, 7, 8, 9] {
                 if !sq.safe_step(step) {
                     continue;
                 };
-                let to = (sq as isize + step) as usize;
-                attacks.king[to] |= Bitboard::square(sq);
+                attacks.king[sq + step] |= Bitboard::square(sq);
             }
+
+            attacks.bishop[sq] = bishop_magics.get(sq)[Bitboard(0)];
+            attacks.rook[sq] = rook_magics.get(sq)[Bitboard(0)];
+            attacks.queen[sq] = attacks.bishop[sq] | attacks.rook[sq];
         }
         attacks
     }
@@ -72,14 +87,12 @@ impl Index<PieceType> for PseudoAttacks {
 
     fn index(&self, index: PieceType) -> &Self::Output {
         match index {
-            PieceType::None => &self.none,
-            PieceType::Pawn => &self.pawn,
             PieceType::Knight => &self.knight,
             PieceType::Bishop => &self.bishop,
             PieceType::Rook => &self.rook,
             PieceType::Queen => &self.queen,
             PieceType::King => &self.king,
-            PieceType::All => &self.all,
+            _ => panic!("Invalid piece type"),
         }
     }
 }
@@ -95,14 +108,12 @@ impl Index<Piece> for PseudoAttacks {
 impl IndexMut<PieceType> for PseudoAttacks {
     fn index_mut(&mut self, index: PieceType) -> &mut [Bitboard; 64] {
         match index {
-            PieceType::None => &mut self.none,
-            PieceType::Pawn => &mut self.pawn,
             PieceType::Knight => &mut self.knight,
             PieceType::Bishop => &mut self.bishop,
             PieceType::Rook => &mut self.rook,
             PieceType::Queen => &mut self.queen,
             PieceType::King => &mut self.king,
-            PieceType::All => &mut self.all,
+            _ => panic!("Invalid piece type"),
         }
     }
 }
