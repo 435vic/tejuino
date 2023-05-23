@@ -1,11 +1,14 @@
 pub mod piece;
 pub mod square;
 pub mod bitboard;
+pub mod board;
+pub mod magic;
 
 pub use piece::*;
 pub use square::*;
 pub use bitboard::*;
-
+pub use board::*;
+pub use magic::*;
 
 #[derive(Debug, Clone, Copy)]
 pub enum Color {
@@ -37,6 +40,7 @@ pub enum Rank {
     Rank8 = 7,
 }
 
+#[derive(Copy, Clone, PartialEq)]
 pub enum Direction {
     Up = 8,
     Right = 1,
@@ -48,7 +52,6 @@ pub enum Direction {
     DownRight = -8 + 1,
     DownLeft = -8 - 1,
 }
-
 
 
 impl File {

@@ -40,7 +40,7 @@ impl Iterator for SquareIter {
     type Item = Square;
 
     fn next(&mut self) -> Option<Self::Item> {
-        if self.index < self.to {
+        if self.index <= self.to {
             let square = ALL_SQUARES[self.index];
             self.index += self.step;
             Some(square)
@@ -51,8 +51,8 @@ impl Iterator for SquareIter {
 }
 
 impl Square {
-    pub fn in_range(n: usize) -> bool {
-        n < 64
+    pub fn in_range(n: isize) -> bool {
+        n >= 0 && n < 64
     }
 
     pub fn file(&self) -> File {
@@ -70,21 +70,28 @@ impl Square {
         file_dist.max(rank_dist)
     }
 
-    pub fn from(n: usize) -> Square {
-        if n < 64 {
+    pub fn from(n: isize) -> Square {
+        if n >= 0 && n < 64 {
             ALL_SQUARES[n as usize]
         } else {
             Square::InvalidSquare
         }
     }
 
-    pub fn safe_step(self, step: isize) -> bool {
-        let to_n = (self as isize) + step;
-        if Square::in_range(to_n as usize) {
-            let to = Square::from(to_n as usize);
+    pub fn safe_step(&self, step: isize) -> bool {
+        if Square::in_range(*self as isize + step) {
+            let to = *self + step;
             self.dist(to) <= 2
         } else {
             false
+        }
+    }
+
+    pub fn step(&self, step: isize) -> Option<Square> {
+        if self.safe_step(step) {
+            Some(*self + step)
+        } else {
+            None
         }
     }
 
@@ -104,6 +111,49 @@ impl Square {
         }
     }
 }
+
+impl From<Square> for usize {
+    fn from(sq: Square) -> usize {
+        sq as usize
+    }
+}
+
+impl From<Square> for isize {
+    fn from(sq: Square) -> isize {
+        sq as isize
+    }
+}
+
+impl std::ops::Add<isize> for Square {
+    type Output = Square;
+
+    fn add(self, rhs: isize) -> Self::Output {
+        let n: isize = self.into();
+        Square::from(n + rhs)
+    }
+}
+
+impl std::ops::Sub<isize> for Square {
+    type Output = Square;
+
+    fn sub(self, rhs: isize) -> Self::Output {
+        let n: isize = self.into();
+        Square::from(n - rhs)
+    }
+}
+
+impl std::ops::AddAssign<isize> for Square {
+    fn add_assign(&mut self, rhs: isize) {
+        *self = Square::from(*self as isize + rhs);
+    }
+}
+
+impl std::ops::SubAssign<isize> for Square {
+    fn sub_assign(&mut self, rhs: isize) {
+        *self = Square::from(*self as isize - rhs);
+    }
+}
+
 
 impl std::fmt::Display for Square {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
