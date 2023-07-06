@@ -11,7 +11,7 @@ pub fn benchmarks(c: &mut Criterion) {
     single_square_group.bench_function("random square random seed", |b| { b.iter(|| {
         // choose a random square
         let mut rng = rand::thread_rng();
-        let square = Square::from(rng.gen_range(0..64));
+        let square = Square::from(rng.gen_range(0..64) as usize);
         assert_ne!(square, Square::InvalidSquare);
         // generate RNG based on rank
         // let seed = RNG_SEEDS[square.rank() as usize];
@@ -23,7 +23,7 @@ pub fn benchmarks(c: &mut Criterion) {
     single_square_group.bench_function("random square RNG_SEEDS", |b| { b.iter(|| {
         // choose a random square
         let mut rng = rand::thread_rng();
-        let square = Square::from(rng.gen_range(0..64));
+        let square = Square::from(rng.gen_range(0..64) as usize);
         assert_ne!(square, Square::InvalidSquare);
         // generate RNG based on rank
         let seed = RNG_SEEDS[square.rank() as usize];

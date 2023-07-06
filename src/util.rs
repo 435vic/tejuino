@@ -17,6 +17,7 @@ impl PRNG {
     }
 
     // xorshift64* algorithm
+    #[inline]
     pub fn next(&mut self) -> u64 {
         let mut x = self.state;
         x ^= x.wrapping_shr(12);
@@ -26,6 +27,7 @@ impl PRNG {
         x.wrapping_mul(0x2545F4914F6CDD1D)
     }
 
+    #[inline]
     pub fn sparse(&mut self) -> u64 {
         self.next() & self.next() & self.next()
     }
@@ -62,7 +64,7 @@ pub fn render_grid(content: &[char; 64], legend: bool) -> String {
     out += format!("{}\n", GRID_CHARS[2][2]).as_str();
 
     if legend {
-        out += "  A   B   C   D   E   F  G   H\n";
+        out += "  A   B   C   D   E   F   G   H\n";
     }
 
     out

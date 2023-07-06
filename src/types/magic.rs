@@ -1,19 +1,26 @@
+//! # Magic Bitboard Types
+//! Types for magic bitboards.
+
 use std::ops::Index;
 
 use crate::types::{Bitboard, PieceType, Square};
 use crate::magic::magic_index;
 
 pub static RNG_SEEDS: &[u64] = &[728, 10316, 55013, 32803, 12281, 15100, 16645, 255];
+/// A MagicTable stores 64 magic bitboards for each square in a board.
 pub type MagicTable = [SuperMagic; 64];
 
+/// A SuperMagic stores all necessary info for getting a magic bitboard for a square,
+/// along with an offset, which allows for all of squares to be stored in a single array.
 #[derive(Debug)]
 pub struct SuperMagic {
     mask: Bitboard,
     magic: u64,
     shift: u8,
-    offset: usize, // reference for direct indexing
+    offset: usize,
 }
 
+/// Stores individual magic bitboards.
 pub struct Magic {
     pub mask: Bitboard,
     pub magic: u64,
@@ -79,6 +86,7 @@ impl Index<Square> for MagicTable {
 }
 
 impl MagicPiece {
+    #[inline]
     pub fn ptype(&self) -> PieceType {
         match self {
             MagicPiece::Bishop => PieceType::Bishop,
@@ -88,12 +96,14 @@ impl MagicPiece {
 }
 
 impl SuperMagic {
+    #[inline]
     pub fn index(&self, occupied: Bitboard) -> usize {
         self.offset + magic_index(self.magic, self.mask, self.shift, occupied)
     }
 }
 
 impl Magic {
+    #[inline]
     pub fn index(&self, occupied: Bitboard) -> usize {
         magic_index(self.magic, self.mask, self.shift, occupied)
     }

@@ -101,7 +101,7 @@ impl Index<Piece> for PseudoAttacks {
     type Output = [Bitboard; 64];
 
     fn index(&self, index: Piece) -> &Self::Output {
-        &self[index.piece_type()]
+        &self[index.ptype()]
     }
 }
 
@@ -120,6 +120,6 @@ impl IndexMut<PieceType> for PseudoAttacks {
 
 impl IndexMut<Piece> for PseudoAttacks {
     fn index_mut(&mut self, index: Piece) -> &mut [Bitboard; 64] {
-        &mut self[index.piece_type()]
+        &mut self[index.ptype()]
     }
 }

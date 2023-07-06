@@ -1,4 +1,4 @@
-use crate::types::{File, Rank};
+use crate::types::{File, Rank, Direction};
 
 const FILES: &[&'static str] = &["A", "B", "C", "D", "E", "F", "G", "H"];
 const RANKS: &[&'static str] = &["1", "2", "3", "4", "5", "6", "7", "8"];
@@ -70,14 +70,6 @@ impl Square {
         file_dist.max(rank_dist)
     }
 
-    pub fn from(n: isize) -> Square {
-        if n >= 0 && n < 64 {
-            ALL_SQUARES[n as usize]
-        } else {
-            Square::InvalidSquare
-        }
-    }
-
     pub fn safe_step(&self, step: isize) -> bool {
         if Square::in_range(*self as isize + step) {
             let to = *self + step;
@@ -124,12 +116,47 @@ impl From<Square> for isize {
     }
 }
 
+impl From<usize> for Square {
+    fn from(n: usize) -> Self {
+        if n < 64 {
+            ALL_SQUARES[n]
+        } else {
+            Square::InvalidSquare
+        }
+    }
+}
+
+impl From<isize> for Square {
+    fn from(n: isize) -> Self {
+        if n >= 0 && n < 64 {
+            ALL_SQUARES[n as usize]
+        } else {
+            Square::InvalidSquare
+        }
+    }
+}
+
+impl std::fmt::Display for Square {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        write!(f, "{}{}", FILES[self.file() as usize], RANKS[self.rank() as usize])
+    }
+}
+
 impl std::ops::Add<isize> for Square {
     type Output = Square;
 
     fn add(self, rhs: isize) -> Self::Output {
         let n: isize = self.into();
         Square::from(n + rhs)
+    }
+}
+
+impl std::ops::Add<Direction> for Square {
+    type Output = Square;
+
+    fn add(self, rhs: Direction) -> Self::Output {
+        let n: isize = self.into();
+        Square::from(n + rhs as isize)
     }
 }
 
@@ -142,9 +169,24 @@ impl std::ops::Sub<isize> for Square {
     }
 }
 
+impl std::ops::Sub<Direction> for Square {
+    type Output = Square;
+
+    fn sub(self, rhs: Direction) -> Self::Output {
+        let n: isize = self.into();
+        Square::from(n - rhs as isize)
+    }
+}
+
 impl std::ops::AddAssign<isize> for Square {
     fn add_assign(&mut self, rhs: isize) {
         *self = Square::from(*self as isize + rhs);
+    }
+}
+
+impl std::ops::AddAssign<Direction> for Square {
+    fn add_assign(&mut self, rhs: Direction) {
+        *self = Square::from(*self as isize + rhs as isize);
     }
 }
 
@@ -154,9 +196,8 @@ impl std::ops::SubAssign<isize> for Square {
     }
 }
 
-
-impl std::fmt::Display for Square {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        write!(f, "{}{}", FILES[self.file() as usize], RANKS[self.rank() as usize])
+impl std::ops::SubAssign<Direction> for Square {
+    fn sub_assign(&mut self, rhs: Direction) {
+        *self = Square::from(*self as isize - rhs as isize);
     }
 }

@@ -1,3 +1,38 @@
+//! # Magic Bitboards
+//! ## 'cause regular bitboards aren't magic enough
+//! 
+//! ### What are they?
+//! Magic bitboards are a method of generating the attacks for sliding pieces
+//! (rooks, bishops, queens) using a lookup table. Normally, to calculate them you'd iterate over
+//! 'rays' starting from the piece's square, stopping when you hit a piece or the edge of the board.
+//! However, this method is too slow for chess engines, as they have to process and generate
+//! hundreds of thousands of moves a second! With magic bitboards, we basically offload the task
+//! of calculating these rays and attacks at startup, and we look them up at runtime instead.
+//! 
+//! ### How do they work??
+//! Magic bitboards are glorified hash tables. We 'hash' the blockers (pieces that block the
+//! sliding piece) using a magic number (which we'll get into in a bit), which gives us an index
+//! which we can use to store and later look up the corresponding attack squares. Each square on
+//! the board has its own hash table, for a total of 64 hash tables for each sliding piece. In this
+//! case, we can just store one for a rook and bishop, as the queen is a combination of both.
+//! 
+//! ### What is all this magic mumbo jumbo?
+//! If we were to just use the blockers bitboard as an array index, it would be too big. We need
+//! to find a way to 'hash' it so that it takes up less space. This is where the magic number comes
+//! into play. We guess a random number, multiply it by the bitboard, and shift the result to the
+//! right, so that we have less total bits. Of course, this random number might not work the first
+//! time, creating hash collisions. In that case, we just try again with a different number.
+//! 
+//! If you still don't understand anything, I get it. I'm pretty bad at explaining stuff, so
+//! you can also look at the links I left down below. Don't worry, I won't get jealous.
+//! 
+//! ### Links
+//! - [Chess Programming Wiki](https://www.chessprogramming.org/Magic_Bitboards)
+//! - [analog-hors](https://analog-hors.github.io/site/magic-bitboards/)
+//! - [Stockfish implementation](https://github.com/official-stockfish/Stockfish/blob/e699fee513ce26b3794ac43d08826c89106e10ea/src/bitboard.cpp#L142)
+//! 
+
+
 use crate::types::*;
 use crate::util::PRNG;
 use crate::movegen::sliding_attack;
@@ -13,6 +48,7 @@ pub fn generate_magics(piece: &MagicPiece) -> MagicBitboard {
     let mut magics: Vec<SuperMagic> = vec![];
     let mut offset = 0;
     for sq in Square::all() {
+        // RNG seeds shamelessly stolen from Stockfish
         let (magic, table) = find_magic(piece, sq, &mut PRNG::new(RNG_SEEDS[sq.rank() as usize]));
         magics.push(SuperMagic::new(magic.mask, magic.magic, magic.shift, offset));
         offset += table.len();
@@ -33,8 +69,7 @@ pub fn find_magic(
     square: Square,
     rng: &mut PRNG,
 ) -> (Magic, Vec<Bitboard>) {
-    let blockers = sliding_attack(piece.ptype(), square, Bitboard(0))
-        .expect("piece.piece_type() should be one of PieceType::Knight or PieceType::Rook");
+    let blockers = sliding_attack(piece.ptype(), square, Bitboard(0));
     let mask = blockers & !Bitboard::edges(square);
     let index_bits = mask.0.count_ones();
     let mut table = vec![Bitboard(0); 1 << index_bits];
@@ -49,8 +84,7 @@ pub fn find_magic(
 
     let mut blockers_subset = Bitboard(0);
     for i in 0..(1 << index_bits) {
-        let attack = sliding_attack(piece.ptype(), square, blockers_subset)
-            .expect("piece.piece_type() should be one of PieceType::Knight or PieceType::Rook");
+        let attack = sliding_attack(piece.ptype(), square, blockers_subset);
         perms[i] = (blockers_subset, attack);
 
         blockers_subset.0 = m.mask.0 & blockers_subset.0.wrapping_sub(m.mask.0);
@@ -68,7 +102,7 @@ pub fn find_magic(
     // With all the subsets and their attacks computed, we can brute force the magic
     loop {
         // Magic calculation from stockfish (bitboard.cpp line 196)
-        // generate magic until it has less than 6 zeroes
+        // generate magic until it has less than 6 ones in the most significant bits
         m.magic = 0;
         while (m.mask.0.wrapping_mul(m.magic) >> 56).count_ones() < 6 {
             m.magic = rng.sparse();

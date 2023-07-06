@@ -1,8 +1,19 @@
-use crate::types::Square;
+//! # Bitboards
+//! 
+//! Bitboards are a way to represent chess information in a single, 64 integer.
+//! Not only are they very memory efficient, but they also allow for very fast bitwise operations,
+//! which are used in move generation and evaluation.
+
+use crate::types::{Square, Direction};
 use crate::util;
 
+/// The bitboard type. It is a 64 bit unsigned integer.
 #[derive(Copy, Clone, PartialEq, Eq)]
 pub struct Bitboard(pub u64);
+
+pub struct BitboardIter {
+    bitboard: Bitboard,
+}
 
 impl Bitboard {
     pub const RANK_1: Bitboard = Bitboard(0xFF);
@@ -23,10 +34,29 @@ impl Bitboard {
     pub const FILE_G: Bitboard = Bitboard(0x0101010101010101 << 6);
     pub const FILE_H: Bitboard = Bitboard(0x0101010101010101 << 7);
 
+    /// Create a bitboard with a single square set.
+    /// 
+    /// # Example
+    /// ```
+    /// use tejuino::types::{Bitboard, Square};
+    /// 
+    /// let bitboard = Bitboard::square(Square::B1);
+    /// assert_eq!(bitboard, Bitboard(0x2));
+    /// ```
+    #[inline]
     pub fn square(square: Square) -> Bitboard {
         Bitboard(1 << square as usize)
     }
 
+    /// Create a bitboard from a list of squares.
+    /// 
+    /// # Example
+    /// ```
+    /// use tejuino::types::{Bitboard, Square};
+    /// 
+    /// let bitboard = Bitboard::squares(&[Square::A1, Square::B1, Square::C1, Square::D1]);
+    /// assert_eq!(bitboard, Bitboard(0xF));
+    /// ```
     pub fn squares(squares: &[Square]) -> Bitboard {
         let mut bitboard = Bitboard(0);
         for square in squares {
@@ -35,35 +65,60 @@ impl Bitboard {
         bitboard
     }
 
+    /// Generate a bitboard with the edges where the square provided _isn't_ set.
+    /// Used for magic bitboard generation. (See: src/magic.rs)
+    #[inline]
     pub fn edges(s: Square) -> Bitboard {
         (Bitboard::FILE_A | Bitboard::FILE_H) & !Bitboard::file(s) | 
         (Bitboard::RANK_1 | Bitboard::RANK_8) & !Bitboard::rank(s)
     }
 
+    /// Generate a bitboard with the file the square provided is on set.
+    #[inline]
     pub fn file(square: Square) -> Bitboard {
         Bitboard::FILE_A << (square.file()) as usize
     }
 
+    /// Generate a bitboard with the rank the square provided is on set.
+    #[inline]
     pub fn rank(square: Square) -> Bitboard {
         Bitboard::RANK_1 << (square.rank() as usize) * 8
     }
 
+    /// Checks if a bitboard is empty.
+    #[inline]
     pub fn empty(&self) -> bool {
         self.0 == 0
     }
 
-    pub fn and(&self, other: &Bitboard) -> Bitboard {
-        *self & *other
-    }
-
-    pub fn or(&self, other: &Bitboard) -> Bitboard {
-        *self | *other
-    }
-
-    pub fn xor(&self, other: &Bitboard) -> Bitboard {
-        *self ^ *other
+    /// Shift a bitboard by a specified amount and direction. Set bits that go off the board are lost.
+    #[inline]
+    pub fn shift(&self, d: Direction, amt: usize) -> Bitboard {
+        match d {
+            Direction::Up => *self << (8 * amt),
+            Direction::Down => *self >> (8 * amt),
+            _ => *self,
+        }
     }
     
+    pub fn iter(&self) -> BitboardIter {
+        BitboardIter {
+            bitboard: *self,
+        }
+    }
+}
+
+impl Iterator for BitboardIter {
+    type Item = Square;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.bitboard.0 == 0 {
+            return None;
+        }
+        let square = self.bitboard.0.trailing_zeros() as usize;
+        self.bitboard.0 &= self.bitboard.0 - 1;
+        Some(Square::from(square))
+    }
 }
 
 impl std::ops::BitOr for Bitboard {
@@ -154,6 +209,6 @@ impl std::fmt::Debug for Bitboard {
                 chars[i] = '●';
             }
         }
-        write!(f, "{}", util::render_grid(&chars, true))
+        write!(f, "\n{}", util::render_grid(&chars, true))
     }
 }

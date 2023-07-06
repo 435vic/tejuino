@@ -12,6 +12,7 @@ pub enum Piece {
 }
 
 pub enum PieceType {
+    All,
     None,
     Pawn,
     Knight,
@@ -19,7 +20,6 @@ pub enum PieceType {
     Rook,
     Queen,
     King,
-    All,
 }
 
 impl Piece {
@@ -52,7 +52,7 @@ impl Piece {
         }
     }
 
-    pub fn piece_type(&self) -> PieceType {
+    pub fn ptype(&self) -> PieceType {
         match self {
             Piece::None => PieceType::None,
             Piece::Pawn(_) => PieceType::Pawn,
@@ -61,6 +61,18 @@ impl Piece {
             Piece::Rook(_) => PieceType::Rook,
             Piece::Queen(_) => PieceType::Queen,
             Piece::King(_) => PieceType::King,
+        }
+    }
+
+    pub fn color(&self) -> Option<Color> {
+        match self {
+            Piece::None => None,
+            Piece::Pawn(color) => Some(*color),
+            Piece::Knight(color) => Some(*color),
+            Piece::Bishop(color) => Some(*color),
+            Piece::Rook(color) => Some(*color),
+            Piece::Queen(color) => Some(*color),
+            Piece::King(color) => Some(*color),
         }
     }
 }

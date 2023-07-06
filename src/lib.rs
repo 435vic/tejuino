@@ -1,3 +1,7 @@
+//! # Tejuino: A chess engine written in Rust
+//! 
+//! ## WARNING: VERY WORK IN PROGRESS
+
 pub mod movegen;
 pub mod types;
 pub mod util;
@@ -64,7 +68,7 @@ mod tests {
 
         for jmp in knight_jumps {
             println!("{} -> {}", jmp.from, jmp.to);
-            assert_eq!(jmp.from.dist(jmp.to), 2)
+            assert_eq!(jmp.from.dist(jmp.to), 2);
         }
     }
 

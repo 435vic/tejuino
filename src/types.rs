@@ -4,6 +4,8 @@ pub mod bitboard;
 pub mod board;
 pub mod magic;
 
+use std::fmt::{Display, Debug};
+
 pub use piece::*;
 pub use square::*;
 pub use bitboard::*;
@@ -53,6 +55,19 @@ pub enum Direction {
     DownLeft = -8 - 1,
 }
 
+pub enum MoveType {
+    Quiet,
+    Promotion,
+    EnPassant,
+    Castle
+}
+
+pub struct Move {
+    pub from: Square,
+    pub to: Square,
+    pub move_type: MoveType,
+}
+
 
 impl File {
     fn try_from(file: usize) -> Result<File, String> {
@@ -86,3 +101,35 @@ impl Rank {
     }
 }
 
+impl std::ops::Not for Color {
+    type Output = Color;
+
+    fn not(self) -> Self::Output {
+        match self {
+            Color::White => Color::Black,
+            Color::Black => Color::White,
+        }
+    }
+}
+
+impl Move {
+    pub fn new(from: Square, to: Square, move_type: MoveType) -> Move {
+        Move { from, to, move_type }
+    }
+
+    pub fn print(&self) {
+        println!("{} -> {}", self.from, self.to);
+    }
+}
+
+impl Display for Move {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{} -> {}", self.from, self.to)
+    }
+}
+
+impl Debug for Move {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{} -> {}", self.from, self.to)
+    }
+}
